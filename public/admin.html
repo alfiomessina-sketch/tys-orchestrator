@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TYS Admin Dashboard</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<script>
+if (!localStorage.getItem("logged")) {
+    window.location.href = "/login.html";
+}
+</script>
+
+<h1>TYS Admin Dashboard</h1>
+
+<div class="kpi">
+    <div id="total">Clienti: 0</div>
+    <div id="active">Attivi: 0</div>
+    <div id="unpaid">Non pagati: 0</div>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Piano</th>
+            <th>Status</th>
+            <th>Pagamento</th>
+            <th>Stazioni</th>
+            <th>Azioni</th>
+        </tr>
+    </thead>
+    <tbody id="clientTable"></tbody>
+</table>
+
+<script src="admin.js"></script>
+
+</body>
+</html>
