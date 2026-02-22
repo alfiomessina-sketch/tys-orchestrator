@@ -5,6 +5,7 @@ const cors = require("cors");
 const path = require("path");
 
 const { processUserMessage } = require("./ai/agent");
+const announcementRoutes = require("./routes/announcementRoutes");
 
 const app = express();
 const PORT = 3000;
@@ -18,7 +19,7 @@ app.use(express.json());
 app.get("/", (req, res) => {
     res.json({
         system: "TYS Orchestrator",
-        version: "v2.3",
+        version: "v2.4",
         status: "running"
     });
 });
@@ -57,8 +58,13 @@ app.post("/api/ai", async (req, res) => {
 });
 
 /* ===============================
+   ANNOUNCEMENT PIPELINE
+=================================*/
+app.use("/api/announcement", announcementRoutes);
+
+/* ===============================
    START SERVER
 =================================*/
 app.listen(PORT, () => {
-    console.log(`TYS ORCHESTRATOR v2.3 running on http://localhost:${PORT}`);
+    console.log(`TYS ORCHESTRATOR v2.4 running on http://localhost:${PORT}`);
 });

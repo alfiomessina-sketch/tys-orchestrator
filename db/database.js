@@ -1,52 +1,34 @@
-const sqlite3 = require("sqlite3").verbose();
+const Database = require("better-sqlite3");
 const path = require("path");
 
-const dbPath = path.join(__dirname, "..", "database.db");
+const dbPath = path.join(__dirname, "database.sqlite");
 
-const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error("Errore connessione database:", err.message);
-    } else {
-        console.log("Database connesso.");
-    }
-});
+const db = new Database(dbPath);
 
-db.serialize(() => {
+// ===============================
+// CLIENTS TABLE (se non esiste)
+// ===============================
+db.exec(`
+CREATE TABLE IF NOT EXISTS clients (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    plan TEXT,
+    status TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+`);
 
-    /*
-    ================================
-    CLIENTS TABLE (STABLE)
-    ================================
-    */
-    db.run(`
-        CREATE TABLE IF NOT EXISTS clients (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            email TEXT,
-            plan TEXT,
-            status TEXT,
-            station_id TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    `);
-
-    /*
-    ================================
-    NEW: STATIONS TABLE (MULTI RADIO)
-    ================================
-    */
-    db.run(`
-        CREATE TABLE IF NOT EXISTS stations (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            client_id INTEGER NOT NULL,
-            station_id TEXT NOT NULL,
-            azura_id INTEGER,
-            status TEXT DEFAULT 'active',
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (client_id) REFERENCES clients(id)
-        )
-    `);
-
-});
+// ===============================
+// ANNOUNCEMENTS TABLE
+// ===============================
+db.exec(`
+CREATE TABLE IF NOT EXISTS announcements (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    client_id INTEGER,
+    text TEXT,
+    file_path TEXT,
+    created_at TEXT
+);
+`);
 
 module.exports = db;
