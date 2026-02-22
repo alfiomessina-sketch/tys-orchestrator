@@ -1,46 +1,88 @@
-\# TYS ORCHESTRATOR – ARCHITECTURE
+\# TYS ORCHESTRATOR – ARCHITECTURE STATE
 
 
 
-Stack:
+\## Current Stack
 
-\- Node.js
+\- Node.js + Express
 
-\- Express
+\- SQLite (database.db)
 
-\- SQLite
+\- AzuraCast API integration
 
-\- AzuraCast API
+\- GitHub repository cleaned (no node\_modules, no runtime DB)
 
-\- Multi-tenant SaaS
-
-
-
-Core Concepts:
-
-\- Clients
-
-\- Stations
-
-\- Plans (29.99 / 69.99 / 159.99)
-
-\- max\_stations
-
-\- payment\_status
-
-\- expires\_at
-
-\- automatic suspension
+\- Port 3000
 
 
 
-Current Status:
+\## Current System Structure
 
-\- Login basic working
 
-\- Dashboard working
 
-\- Multi-station endpoint active
+Orchestrator is the main backend engine.
 
-\- Automatic expiration check active
+
+
+Responsibilities:
+
+\- Client management
+
+\- Plan logic (29 / 69 / 159)
+
+\- Multi-station control
+
+\- Station creation via Azura
+
+\- Persistent database layer
+
+
+
+\## Historical Context
+
+
+
+Originally there were two systems:
+
+\- Agent (AI + local memory)
+
+\- Orchestrator (radio + DB)
+
+
+
+Decision taken:
+
+Agent will be integrated into Orchestrator.
+
+Final architecture will be a single unified backend.
+
+
+
+\## Target Architecture
+
+
+
+Single backend containing:
+
+\- AI Engine (Ollama or alternative)
+
+\- Plan Engine
+
+\- Billing logic
+
+\- Azura service layer
+
+\- Database persistence
+
+\- Multi-tenant multi-station support
+
+
+
+\## Next Strategic Step
+
+
+
+Integrate AI module directly inside Orchestrator
+
+and remove separate Agent project.
 
