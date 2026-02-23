@@ -3,12 +3,27 @@ const router = express.Router();
 const path = require("path");
 const fs = require("fs");
 const { exec } = require("child_process");
+const axios = require("axios");
+const FormData = require("form-data");
 
 const { generateText } = require("../services/aiService");
 const { generateAudio } = require("../services/elevenLabsService");
 const db = require("../db/database");
 
 const FFMPEG_PATH = `"C:\\Program Files (x86)\\By Click Downloader\\ffmpeg.exe"`;
+
+// ==============================
+// AZURA CONFIG
+// ==============================
+
+const AZURA_BASE_URL = process.env.AZURA_BASE_URL;
+const AZURA_API_KEY = process.env.AZURA_API_KEY;
+const STATION_ID = process.env.STATION_ID;
+const SWEEP_PLAYLIST_ID = 133;
+
+// ==============================
+// GENERATE + AUTO UPLOAD
+// ==============================
 
 router.post("/generate", async (req, res) => {
 
@@ -36,16 +51,73 @@ router.post("/generate", async (req, res) => {
 
         const ffmpegCommand = `${FFMPEG_PATH} -y -i "${rawPath}" -af "highpass=f=80,loudnorm=I=-16:LRA=8:TP=-1.0" -codec:a libmp3lame -b:a 320k "${finalPath}"`;
 
-        exec(ffmpegCommand, (error, stdout, stderr) => {
+        exec(ffmpegCommand, async (error, stdout, stderr) => {
 
             if (error) {
-                console.error("=== FFMPEG ERROR ===");
-                console.error(error.message);
                 console.error(stderr);
                 return res.status(500).json({ error: "Audio processing failed" });
             }
 
             fs.unlinkSync(rawPath);
+
+            // =========================
+            // UPLOAD SU AZURA
+            // =========================
+
+            const form = new FormData();
+            form.append("file", fs.createReadStream(finalPath));
+
+            await axios.post(
+                `${AZURA_BASE_URL}/station/${STATION_ID}/files/upload`,
+                form,
+                {
+                    headers: {
+                        ...form.getHeaders(),
+                        "X-API-Key": AZURA_API_KEY
+                    }
+                }
+            );
+
+            // =========================
+            // RECUPERA FILE ID
+            // =========================
+
+            const filesResponse = await axios.get(
+                `${AZURA_BASE_URL}/station/${STATION_ID}/files`,
+                {
+                    headers: {
+                        "X-API-Key": AZURA_API_KEY
+                    }
+                }
+            );
+
+            const uploadedFile = filesResponse.data
+                .filter(f => f.path.includes(finalFileName))
+                .sort((a, b) => b.id - a.id)[0];
+
+            if (!uploadedFile) {
+                return res.status(500).json({ error: "File non trovato su Azura" });
+            }
+
+            // =========================
+            // ASSEGNA PLAYLIST
+            // =========================
+
+            await axios.put(
+                `${AZURA_BASE_URL}/station/${STATION_ID}/file/${uploadedFile.id}`,
+                {
+                    playlists: [132, SWEEP_PLAYLIST_ID]
+                },
+                {
+                    headers: {
+                        "X-API-Key": AZURA_API_KEY
+                    }
+                }
+            );
+
+            // =========================
+            // SALVA DB (schema corretto)
+            // =========================
 
             const stmt = db.prepare(`
                 INSERT INTO announcements (client_id, text, file_path, created_at)
@@ -57,17 +129,15 @@ router.post("/generate", async (req, res) => {
             res.json({
                 success: true,
                 text: text,
-                file: finalFileName
+                file: finalFileName,
+                azura_file_id: uploadedFile.id
             });
 
         });
 
     } catch (error) {
 
-        console.error("=== PIPELINE ERROR ===");
-        console.error(error.message);
-        console.error(error.response?.data);
-
+        console.error(error.response?.data || error.message);
         res.status(500).json({ error: "Pipeline error" });
     }
 
