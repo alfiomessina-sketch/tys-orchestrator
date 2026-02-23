@@ -1,11 +1,11 @@
-require("dotenv").config();
-
 const express = require("express");
 const cors = require("cors");
-const path = require("path");
+require("dotenv").config();
 
-const { processUserMessage } = require("./ai/agent");
-const announcementRoutes = require("./routes/announcementRoutes");
+const db = require("./db/database");
+
+const authRoutes = require("./routes/auth");
+const { authenticateToken } = require("./middleware/auth");
 
 const app = express();
 const PORT = 3000;
@@ -13,58 +13,37 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-/* ===============================
-   HOME
-=================================*/
-app.get("/", (req, res) => {
+/*
+====================================
+AUTH ROUTES (NON PROTETTE)
+====================================
+*/
+app.use("/api/auth", authRoutes);
+
+/*
+====================================
+PROTEZIONE TUTTE LE ALTRE API
+====================================
+*/
+app.use("/api", authenticateToken);
+
+/*
+====================================
+ROUTE TEST PROTETTA
+====================================
+*/
+app.get("/api/protected", (req, res) => {
     res.json({
-        system: "TYS Orchestrator",
-        version: "v2.4",
-        status: "running"
+        message: "Accesso autorizzato",
+        user: req.user
     });
 });
 
-/* ===============================
-   AI ENDPOINT
-=================================*/
-app.post("/api/ai", async (req, res) => {
-
-    const { message, client_id } = req.body;
-
-    if (!message || !client_id) {
-        return res.status(400).json({
-            error: "message and client_id required"
-        });
-    }
-
-    try {
-
-        const action = await processUserMessage(message, client_id);
-
-        return res.json({
-            success: true,
-            action: action
-        });
-
-    } catch (error) {
-
-        return res.status(500).json({
-            success: false,
-            error: "AI processing failed",
-            details: error.message
-        });
-
-    }
-});
-
-/* ===============================
-   ANNOUNCEMENT PIPELINE
-=================================*/
-app.use("/api/announcement", announcementRoutes);
-
-/* ===============================
-   START SERVER
-=================================*/
+/*
+====================================
+SERVER START
+====================================
+*/
 app.listen(PORT, () => {
     console.log(`TYS ORCHESTRATOR v2.4 running on http://localhost:${PORT}`);
 });

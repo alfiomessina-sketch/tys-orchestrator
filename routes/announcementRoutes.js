@@ -21,6 +21,10 @@ const AZURA_API_KEY = process.env.AZURA_API_KEY;
 const STATION_ID = process.env.STATION_ID;
 const SWEEP_PLAYLIST_ID = 133;
 
+if (!AZURA_BASE_URL || !AZURA_API_KEY || !STATION_ID) {
+    throw new Error("Variabili ambiente Azura mancanti");
+}
+
 // ==============================
 // GENERATE + AUTO UPLOAD
 // ==============================
@@ -54,90 +58,99 @@ router.post("/generate", async (req, res) => {
         exec(ffmpegCommand, async (error, stdout, stderr) => {
 
             if (error) {
-                console.error(stderr);
+                console.error("FFMPEG ERROR:", stderr);
                 return res.status(500).json({ error: "Audio processing failed" });
             }
 
             fs.unlinkSync(rawPath);
 
-            // =========================
-            // UPLOAD SU AZURA
-            // =========================
+            try {
 
-            const form = new FormData();
-            form.append("file", fs.createReadStream(finalPath));
+                // =========================
+                // UPLOAD SU AZURA
+                // =========================
 
-            await axios.post(
-                `${AZURA_BASE_URL}/station/${STATION_ID}/files/upload`,
-                form,
-                {
-                    headers: {
-                        ...form.getHeaders(),
-                        "X-API-Key": AZURA_API_KEY
+                const form = new FormData();
+                form.append("file", fs.createReadStream(finalPath));
+
+                await axios.post(
+                    `${AZURA_BASE_URL}/station/${STATION_ID}/files/upload`,
+                    form,
+                    {
+                        headers: {
+                            ...form.getHeaders(),
+                            "X-API-Key": AZURA_API_KEY
+                        }
                     }
-                }
-            );
+                );
 
-            // =========================
-            // RECUPERA FILE ID
-            // =========================
+                // =========================
+                // RECUPERA FILE ID
+                // =========================
 
-            const filesResponse = await axios.get(
-                `${AZURA_BASE_URL}/station/${STATION_ID}/files`,
-                {
-                    headers: {
-                        "X-API-Key": AZURA_API_KEY
+                const filesResponse = await axios.get(
+                    `${AZURA_BASE_URL}/station/${STATION_ID}/files`,
+                    {
+                        headers: {
+                            "X-API-Key": AZURA_API_KEY
+                        }
                     }
+                );
+
+                const uploadedFile = filesResponse.data
+                    .filter(f => f.path.includes(finalFileName))
+                    .sort((a, b) => b.id - a.id)[0];
+
+                if (!uploadedFile) {
+                    return res.status(500).json({ error: "File non trovato su Azura" });
                 }
-            );
 
-            const uploadedFile = filesResponse.data
-                .filter(f => f.path.includes(finalFileName))
-                .sort((a, b) => b.id - a.id)[0];
+                // =========================
+                // ASSEGNA PLAYLIST
+                // =========================
 
-            if (!uploadedFile) {
-                return res.status(500).json({ error: "File non trovato su Azura" });
+                await axios.put(
+                    `${AZURA_BASE_URL}/station/${STATION_ID}/file/${uploadedFile.id}`,
+                    {
+                        playlists: [132, SWEEP_PLAYLIST_ID]
+                    },
+                    {
+                        headers: {
+                            "X-API-Key": AZURA_API_KEY
+                        }
+                    }
+                );
+
+                // =========================
+                // SALVA DB
+                // =========================
+
+                const stmt = db.prepare(`
+                    INSERT INTO announcements (client_id, text, file_path, created_at)
+                    VALUES (?, ?, ?, datetime('now'))
+                `);
+
+                stmt.run(client_id, text, finalPath);
+
+                res.json({
+                    success: true,
+                    text: text,
+                    file: finalFileName,
+                    azura_file_id: uploadedFile.id
+                });
+
+            } catch (azuraError) {
+
+                console.error("AZURA ERROR:", azuraError.response?.data || azuraError.message);
+                return res.status(500).json({ error: "Azura upload failed" });
+
             }
-
-            // =========================
-            // ASSEGNA PLAYLIST
-            // =========================
-
-            await axios.put(
-                `${AZURA_BASE_URL}/station/${STATION_ID}/file/${uploadedFile.id}`,
-                {
-                    playlists: [132, SWEEP_PLAYLIST_ID]
-                },
-                {
-                    headers: {
-                        "X-API-Key": AZURA_API_KEY
-                    }
-                }
-            );
-
-            // =========================
-            // SALVA DB (schema corretto)
-            // =========================
-
-            const stmt = db.prepare(`
-                INSERT INTO announcements (client_id, text, file_path, created_at)
-                VALUES (?, ?, ?, datetime('now'))
-            `);
-
-            stmt.run(client_id, text, finalPath);
-
-            res.json({
-                success: true,
-                text: text,
-                file: finalFileName,
-                azura_file_id: uploadedFile.id
-            });
 
         });
 
     } catch (error) {
 
-        console.error(error.response?.data || error.message);
+        console.error("PIPELINE ERROR:", error.response?.data || error.message);
         res.status(500).json({ error: "Pipeline error" });
     }
 
