@@ -1,5 +1,17 @@
 node_modules/
-database.db
-database.sqbpro
+
+# Database
+data/database.sqlite
+*.db
+*.sqlite
+
+# Environment
 .env
+
+# Local tools
+database.sqbpro
 memory.json
+
+# OS
+.DS_Store
+Thumbs.db
