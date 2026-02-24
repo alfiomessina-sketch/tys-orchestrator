@@ -15,11 +15,16 @@ router.post("/generate", async (req, res) => {
             return res.status(400).json({ error: "Prompt mancante" });
         }
 
-        const clientId = req.user.client_id;
+        // ⚠️ TEST MODE: CLIENT ID FISSO
+        const clientId = 1;
 
         const client = db.prepare("SELECT * FROM clients WHERE id = ?").get(clientId);
 
-        if (!client || client.status !== "active") {
+        if (!client) {
+            return res.status(404).json({ error: "Client non trovato" });
+        }
+
+        if (client.status !== "active") {
             return res.status(403).json({ error: "Client non attivo" });
         }
 
@@ -27,6 +32,7 @@ router.post("/generate", async (req, res) => {
             return res.status(403).json({ error: "Piano Starter non include AI" });
         }
 
+        // 1) GENERAZIONE TESTO
         const ollamaResponse = await axios.post(
             `${process.env.OLLAMA_BASE_URL}/api/generate`,
             {
@@ -38,6 +44,7 @@ router.post("/generate", async (req, res) => {
 
         const generatedText = ollamaResponse.data.response;
 
+        // 2) GENERAZIONE AUDIO
         const elevenResponse = await axios.post(
             `https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVEN_VOICE_ID}`,
             {
@@ -59,10 +66,12 @@ router.post("/generate", async (req, res) => {
 
         fs.writeFileSync(rawPath, elevenResponse.data);
 
+        // NORMALIZZAZIONE -16 LUFS
         execSync(
-            `ffmpeg -y -i "${rawPath}" -af "highpass=f=100,loudnorm=I=-24:TP=-1.5:LRA=11" "${finalPath}"`
+            `ffmpeg -y -i "${rawPath}" -af "highpass=f=100,loudnorm=I=-16:TP=-1.0:LRA=11" "${finalPath}"`
         );
 
+        // SALVATAGGIO DB
         db.prepare(`
             INSERT INTO announcements (client_id, text, file_path, created_at)
             VALUES (?, ?, ?, datetime('now'))

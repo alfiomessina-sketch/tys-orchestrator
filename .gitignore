@@ -1,6 +1,7 @@
 node_modules/
 
 # Database
+db/database.sqlite
 data/database.sqlite
 *.db
 *.sqlite
@@ -15,3 +16,5 @@ memory.json
 # OS
 .DS_Store
 Thumbs.db
+
+uploads/
