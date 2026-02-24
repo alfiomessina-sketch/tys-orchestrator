@@ -1,11 +1,11 @@
-const express = require("express");
-const cors = require("cors");
 require("dotenv").config();
 
-const db = require("./db/database");
+const express = require("express");
+const cors = require("cors");
 
 const authRoutes = require("./routes/auth");
-const { authenticateToken } = require("./middleware/auth");
+const clientRoutes = require("./routes/clients");
+const announcementRoutes = require("./routes/announcement-generate");
 
 const app = express();
 const PORT = 3000;
@@ -13,37 +13,14 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-/*
-====================================
-AUTH ROUTES (NON PROTETTE)
-====================================
-*/
 app.use("/api/auth", authRoutes);
+app.use("/api/clients", clientRoutes);
+app.use("/api/announcement", announcementRoutes);
 
-/*
-====================================
-PROTEZIONE TUTTE LE ALTRE API
-====================================
-*/
-app.use("/api", authenticateToken);
-
-/*
-====================================
-ROUTE TEST PROTETTA
-====================================
-*/
-app.get("/api/protected", (req, res) => {
-    res.json({
-        message: "Accesso autorizzato",
-        user: req.user
-    });
+app.get("/", (req, res) => {
+    res.json({ message: "TYS ORCHESTRATOR ONLINE" });
 });
 
-/*
-====================================
-SERVER START
-====================================
-*/
 app.listen(PORT, () => {
-    console.log(`TYS ORCHESTRATOR v2.4 running on http://localhost:${PORT}`);
+    console.log(`TYS ORCHESTRATOR running on http://localhost:${PORT}`);
 });
