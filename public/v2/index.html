@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Tune Your Store – Command Center v2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <div class="logo">
+            <img src="logo.png" alt="Tune Your Store Logo" class="logo-img">
+        </div>
+
+        <nav>
+            <ul>
+                <li class="active">Dashboard</li>
+                <li>Radio Player</li>
+                <li>Playlists</li>
+                <li>TTS Studio</li>
+                <li>Werbung</li>
+                <li>Programm-Planer</li>
+                <li>Themen-Pakete</li>
+                <li>Mein Abo</li>
+            </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="status-indicator">
+                <span class="pulse-dot"></span>
+                System aktiv
+            </div>
+        </div>
+    </aside>
+
+    <div class="main">
+
+        <header class="topbar">
+            <h1>Broadcast Command Center</h1>
+            <span class="user-badge">Admin</span>
+        </header>
+
+        <section class="content">
+
+            <div class="radio-core">
+
+                <div class="live-badge" id="liveBadge">OFF AIR</div>
+
+                <div class="radio-circle">
+                    <div class="inner-circle">
+                        <img src="logo.png" alt="Radio Logo" class="player-logo" id="playerLogo">
+                    </div>
+                </div>
+
+                <!-- Equalizer -->
+                <div class="equalizer" id="equalizer">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+
+                <h2>Radio Alfio</h2>
+                <p class="track-info">Jetzt spielt: Example Track</p>
+
+                <div class="player-controls">
+                    <button class="btn-play" id="playBtn">▶</button>
+                    <button class="btn-secondary" id="stopBtn">■</button>
+                </div>
+
+                <div class="volume">
+                    <input type="range" min="0" max="100" value="80">
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

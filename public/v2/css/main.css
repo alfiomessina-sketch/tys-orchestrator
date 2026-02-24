@@ -1,0 +1,243 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+body {
+    background: radial-gradient(circle at center, #0f172a 0%, #020617 80%);
+    color: #e2e8f0;
+    display: flex;
+    min-height: 100vh;
+}
+
+/* SIDEBAR */
+
+.sidebar {
+    width: 240px;
+    min-width: 240px;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(12px);
+    border-right: 1px solid rgba(255, 215, 0, 0.1);
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+}
+
+.logo-img {
+    width: 155px;
+    filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.6));
+}
+
+/* FIX MENU BULLETS */
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+nav li {
+    list-style: none;
+    padding: 13px 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+nav li:hover {
+    background: rgba(255, 215, 0, 0.12);
+    color: #ffd700;
+}
+
+nav li.active {
+    background: rgba(255, 215, 0, 0.2);
+    color: #ffd700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+/* MAIN */
+
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.topbar {
+    height: 75px;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+}
+
+.content {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* RADIO CORE */
+
+.radio-core {
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(25px);
+    padding: 90px;
+    border-radius: 40px;
+    text-align: center;
+    box-shadow:
+        0 0 80px rgba(0, 0, 0, 0.8),
+        0 0 60px rgba(255, 215, 0, 0.2);
+    width: 640px;
+    position: relative;
+}
+
+/* BADGE */
+
+.live-badge {
+    position: absolute;
+    top: 35px;
+    right: 35px;
+    background: #334155;
+    padding: 14px 28px;
+    border-radius: 40px;
+    font-size: 19px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    transition: all 0.3s ease;
+}
+
+.live-badge.on-air {
+    background: #ef4444;
+    animation: livePulse 1.2s infinite;
+}
+
+@keyframes livePulse {
+    0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.8); }
+    70% { box-shadow: 0 0 0 20px rgba(239,68,68,0); }
+    100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+}
+
+/* DISCO */
+
+.radio-circle {
+    width: 320px;
+    height: 320px;
+    margin: 0 auto 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: radial-gradient(circle, #1e293b 40%, #0f172a 100%);
+}
+
+.radio-circle::before {
+    content: "";
+    position: absolute;
+    width: 360px;
+    height: 360px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,215,0,0.6) 0%, rgba(255,215,0,0.1) 60%, transparent 80%);
+    animation: haloPulse 3s ease-in-out infinite;
+    z-index: 0;
+}
+
+@keyframes haloPulse {
+    0% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.7; }
+}
+
+.radio-circle::after {
+    content: "";
+    position: absolute;
+    width: 340px;
+    height: 340px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,215,0,0.9);
+    z-index: 1;
+}
+
+.inner-circle {
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    background: radial-gradient(circle at center, #020617 40%, #000 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.player-logo {
+    width: 180px;
+    animation: rotateDisc 14s linear infinite;
+    animation-play-state: paused;
+    filter:
+        drop-shadow(0 0 60px rgba(255,215,0,1))
+        drop-shadow(0 0 120px rgba(255,215,0,0.6));
+}
+
+@keyframes rotateDisc {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* BUTTONS */
+
+.player-controls {
+    display: flex;
+    justify-content: center;
+    gap: 35px;
+    margin-bottom: 35px;
+}
+
+.btn-play,
+.btn-secondary {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 32px;
+    transition: all 0.3s ease;
+}
+
+.btn-play {
+    background: linear-gradient(145deg, #2563eb, #1e40af);
+    box-shadow:
+        0 0 25px rgba(37,99,235,0.8),
+        0 0 50px rgba(37,99,235,0.5);
+    color: white;
+}
+
+.btn-play:hover {
+    transform: scale(1.08);
+}
+
+.btn-secondary {
+    background: linear-gradient(145deg, #ffd700, #c89b00);
+    box-shadow:
+        0 0 25px rgba(255,215,0,0.8),
+        0 0 50px rgba(255,215,0,0.5);
+    color: #000;
+}
+
+.btn-secondary:hover {
+    transform: scale(1.08);
+}
