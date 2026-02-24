@@ -1,30 +1,53 @@
 const express = require("express");
 const db = require("../db/database");
-const bcrypt = require("bcrypt");
 
 const router = express.Router();
 
-// CREATE CLIENT
-router.post("/create", async (req, res) => {
+// Funzione per creare slug
+function createSlug(name) {
+    return name
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-");
+}
+
+// ===============================
+// CREATE CLIENT + AUTO STATION
+// ===============================
+router.post("/", (req, res) => {
     try {
-        const { name, email, password, plan } = req.body;
+        const { name, plan } = req.body;
 
-        const clientInsert = db.prepare(
-            "INSERT INTO clients (name, plan, status, created_at) VALUES (?, ?, 'active', datetime('now'))"
-        ).run(name, plan);
+        if (!name || !plan) {
+            return res.status(400).json({ error: "Nome e piano obbligatori" });
+        }
 
-        const clientId = clientInsert.lastInsertRowid;
+        // 1) Crea cliente
+        const result = db.prepare(`
+            INSERT INTO clients (name, plan, status)
+            VALUES (?, ?, 'active')
+        `).run(name, plan);
 
-        const hash = await bcrypt.hash(password, 10);
+        const clientId = result.lastInsertRowid;
 
-        db.prepare(
-            "INSERT INTO users (email, password_hash, role, client_id, created_at) VALUES (?, ?, 'client', ?, datetime('now'))"
-        ).run(email, hash, clientId);
+        // 2) Crea slug dal nome
+        const slug = createSlug(name);
 
-        res.json({ message: "Client creato", client_id: clientId });
+        // 3) Crea stazione automatica
+        db.prepare(`
+            INSERT INTO stations (client_id, name, status)
+            VALUES (?, ?, 'active')
+        `).run(clientId, name);
+
+        res.json({
+            message: "Cliente e stazione creati",
+            client_id: clientId,
+            slug: slug
+        });
 
     } catch (err) {
-        res.status(500).json({ error: "Errore creazione client" });
+        console.error(err);
+        res.status(500).json({ error: "Errore creazione cliente" });
     }
 });
 

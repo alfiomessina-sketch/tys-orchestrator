@@ -4,50 +4,47 @@ const path = require("path");
 const dbPath = path.join(__dirname, "database.sqlite");
 const db = new Database(dbPath);
 
-/*
-====================================
-CLIENTS TABLE
-====================================
-*/
-db.exec(`
+// =======================
+// CLIENTS TABLE
+// =======================
+db.prepare(`
 CREATE TABLE IF NOT EXISTS clients (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
-    plan TEXT,
-    status TEXT,
+    name TEXT NOT NULL,
+    plan TEXT NOT NULL,
+    status TEXT DEFAULT 'inactive',
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
-);
-`);
+)
+`).run();
 
-/*
-====================================
-ANNOUNCEMENTS TABLE
-====================================
-*/
-db.exec(`
+// =======================
+// STATIONS TABLE (NEW)
+// =======================
+db.prepare(`
+CREATE TABLE IF NOT EXISTS stations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    client_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    azura_station_id INTEGER,
+    stream_url TEXT,
+    status TEXT DEFAULT 'inactive',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (client_id) REFERENCES clients(id)
+)
+`).run();
+
+// =======================
+// ANNOUNCEMENTS TABLE
+// =======================
+db.prepare(`
 CREATE TABLE IF NOT EXISTS announcements (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     client_id INTEGER,
+    station_id INTEGER,
     text TEXT,
     file_path TEXT,
-    created_at TEXT
-);
-`);
-
-/*
-====================================
-USERS TABLE (SaaS Authentication)
-====================================
-*/
-db.exec(`
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    role TEXT NOT NULL CHECK(role IN ('admin','client')),
-    client_id INTEGER,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
-);
-`);
+)
+`).run();
 
 module.exports = db;

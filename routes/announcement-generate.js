@@ -7,32 +7,49 @@ const { execSync } = require("child_process");
 
 const router = express.Router();
 
+function getAnnouncementLimit(plan) {
+    if (plan === "29") return 0;
+    if (plan === "69") return 30;
+    if (plan === "159") return 100;
+    return 0;
+}
+
 router.post("/generate", async (req, res) => {
     try {
-        const { prompt } = req.body;
 
-        if (!prompt) {
-            return res.status(400).json({ error: "Prompt mancante" });
+        const { client_id, prompt } = req.body;
+
+        if (!client_id || !prompt) {
+            return res.status(400).json({ error: "client_id e prompt obbligatori" });
         }
 
-        // ⚠️ TEST MODE: CLIENT ID FISSO
-        const clientId = 1;
-
-        const client = db.prepare("SELECT * FROM clients WHERE id = ?").get(clientId);
+        const client = db.prepare("SELECT * FROM clients WHERE id = ?").get(client_id);
 
         if (!client) {
-            return res.status(404).json({ error: "Client non trovato" });
+            return res.status(404).json({ error: "Cliente non trovato" });
         }
 
         if (client.status !== "active") {
-            return res.status(403).json({ error: "Client non attivo" });
+            return res.status(403).json({ error: "Cliente non attivo" });
         }
 
-        if (client.plan === "29") {
-            return res.status(403).json({ error: "Piano Starter non include AI" });
+        const limit = getAnnouncementLimit(client.plan);
+
+        if (limit === 0) {
+            return res.status(403).json({ error: "Il tuo piano non include annunci AI" });
         }
 
-        // 1) GENERAZIONE TESTO
+        const count = db.prepare(`
+            SELECT COUNT(*) as total
+            FROM announcements
+            WHERE client_id = ?
+            AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')
+        `).get(client_id).total;
+
+        if (count >= limit) {
+            return res.status(403).json({ error: "Limite mensile annunci raggiunto" });
+        }
+
         const ollamaResponse = await axios.post(
             `${process.env.OLLAMA_BASE_URL}/api/generate`,
             {
@@ -44,7 +61,6 @@ router.post("/generate", async (req, res) => {
 
         const generatedText = ollamaResponse.data.response;
 
-        // 2) GENERAZIONE AUDIO
         const elevenResponse = await axios.post(
             `https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVEN_VOICE_ID}`,
             {
@@ -66,16 +82,14 @@ router.post("/generate", async (req, res) => {
 
         fs.writeFileSync(rawPath, elevenResponse.data);
 
-        // NORMALIZZAZIONE -16 LUFS
         execSync(
             `ffmpeg -y -i "${rawPath}" -af "highpass=f=100,loudnorm=I=-16:TP=-1.0:LRA=11" "${finalPath}"`
         );
 
-        // SALVATAGGIO DB
         db.prepare(`
             INSERT INTO announcements (client_id, text, file_path, created_at)
             VALUES (?, ?, ?, datetime('now'))
-        `).run(clientId, generatedText, finalPath);
+        `).run(client_id, generatedText, finalPath);
 
         res.json({
             message: "Annuncio generato",
