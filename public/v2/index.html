@@ -16,21 +16,21 @@
 
         <nav>
             <ul>
-                <li class="active">Dashboard</li>
-                <li>Radio Player</li>
-                <li>Playlists</li>
-                <li>TTS Studio</li>
-                <li>Werbung</li>
-                <li>Programm-Planer</li>
-                <li>Themen-Pakete</li>
-                <li>Mein Abo</li>
+                <li class="active" data-i18n="nav_dashboard">Dashboard</li>
+                <li data-i18n="nav_radio">Radio Player</li>
+                <li data-i18n="nav_playlists">Playlists</li>
+                <li data-i18n="nav_tts">TTS Studio</li>
+                <li data-i18n="nav_ads">Werbung</li>
+                <li data-i18n="nav_planner">Programm-Planer</li>
+                <li data-i18n="nav_packages">Themen-Pakete</li>
+                <li data-i18n="nav_subscription">Mein Abo</li>
             </ul>
         </nav>
 
         <div class="sidebar-footer">
             <div class="status-indicator">
                 <span class="pulse-dot"></span>
-                System aktiv
+                <span data-i18n="system_active">System aktiv</span>
             </div>
         </div>
     </aside>
@@ -38,41 +38,52 @@
     <div class="main">
 
         <header class="topbar">
-            <h1>Broadcast Command Center</h1>
-            <span class="user-badge">Admin</span>
+            <h1 data-i18n="header_title">Broadcast Command Center</h1>
+
+            <div class="topbar-right">
+
+                <select id="languageSelect" class="language-select">
+                    <option value="it">IT</option>
+                    <option value="de" selected>DE</option>
+                    <option value="en">EN</option>
+                    <option value="tr">TR</option>
+                </select>
+
+                <select id="roleSelect" class="role-select">
+                    <option value="role_admin">Admin</option>
+                    <option value="role_client">Cliente</option>
+                    <option value="role_collab">Collaboratore</option>
+                </select>
+
+            </div>
         </header>
 
-        <section class="content">
+        <section class="content hero-section">
 
-            <div class="radio-core">
+            <div class="hero-logo-wrapper">
+                <img src="logo.png" class="hero-logo">
+            </div>
 
-                <div class="live-badge" id="liveBadge">OFF AIR</div>
+            <div class="hero-content">
 
-                <div class="radio-circle">
-                    <div class="inner-circle">
-                        <img src="logo.png" alt="Radio Logo" class="player-logo" id="playerLogo">
-                    </div>
-                </div>
+                <h1 class="hero-title" data-i18n="title"></h1>
+                <h2 class="hero-subtitle" data-i18n="subtitle"></h2>
+                <p class="hero-question" data-i18n="question"></p>
 
-                <!-- Equalizer -->
-                <div class="equalizer" id="equalizer">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
+                <div class="hero-text-block">
+                    <p data-i18n="p1"></p>
+                    <p data-i18n="p2"></p>
 
-                <h2>Radio Alfio</h2>
-                <p class="track-info">Jetzt spielt: Example Track</p>
+                    <ul>
+                        <li data-i18n="li1"></li>
+                        <li data-i18n="li2"></li>
+                        <li data-i18n="li3"></li>
+                        <li data-i18n="li4"></li>
+                    </ul>
 
-                <div class="player-controls">
-                    <button class="btn-play" id="playBtn">▶</button>
-                    <button class="btn-secondary" id="stopBtn">■</button>
-                </div>
-
-                <div class="volume">
-                    <input type="range" min="0" max="100" value="80">
+                    <p data-i18n="p3"></p>
+                    <p class="hero-price" data-i18n="price"></p>
+                    <p class="hero-final" data-i18n="final"></p>
                 </div>
 
             </div>
@@ -82,5 +93,9 @@
     </div>
 
     <script src="js/app.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/rules.js"></script>
+    <script src="js/roles.js"></script>
+
 </body>
 </html>
